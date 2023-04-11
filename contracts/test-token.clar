@@ -23,3 +23,7 @@
     (ft-transfer? test-token amount sender recipient)
   )
 )
+
+(define-read-only (get-balance (who principal))
+  (ft-get-balance test-token who)
+)

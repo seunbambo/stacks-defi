@@ -7,7 +7,10 @@ requirements = []
 boot_contracts = ["pox", "costs-v2", "bns"]
 
 [project.cache_location]
-path = "./.requirements"
+path = ".requirements"
+[contracts.quick-exchange]
+path = "contracts/quick-exchange.clar"
+
 [contracts.test-token]
 path = "contracts/test-token.clar"
 
