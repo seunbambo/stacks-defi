@@ -51,3 +51,32 @@
     )
   )
 )
+
+;; Allow users to exchange STX and receive tokens at the current exchange rate
+(define-public (stx-to-token-swap (stx-amount uint))
+  (begin 
+    (asserts! (> stx-amount u0) err-zero-stx)
+    
+    (let (
+      (stx-balance (get-stx-balance))
+      (token-balance (get-token-balance))
+      ;; constant to maintain = STX * tokens
+      (constant (* stx-balance token-balance))
+      (new-stx-balance (+ stx-balance stx-amount))
+      ;; constant should = new STX * new tokens
+      (new-token-balance (/ constant new-stx-balance))
+      ;; pay the difference between previous and new token balance to user
+      (tokens-to-pay (- token-balance new-token-balance))
+      ;; put addresses into variables for ease of use
+      (user-address tx-sender)
+      (contract-address (as-contract tx-sender))
+    )
+      (begin
+        ;; transfer STX from user to contract
+        (try! (stx-transfer? stx-amount user-address contract-address))
+        ;; transfer tokens from contract to user
+        (as-contract (contract-call? .test-token transfer tokens-to-pay contract-address user-address))
+      )
+    )
+  )
+)
