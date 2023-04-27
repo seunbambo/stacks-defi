@@ -80,3 +80,32 @@
     )
   )
 )
+
+;; Allow users to exchange tokens and receive STX using the constant-product formula
+(define-public (token-to-stx-swap (token-amount uint))
+  (begin 
+    (asserts! (> token-amount u0) err-zero-tokens)
+    
+    (let (
+      (stx-balance (get-stx-balance))
+      (token-balance (get-token-balance))
+      ;; constant to maintain = STX * tokens
+      (constant (* stx-balance token-balance))
+      (new-token-balance (+ token-balance token-amount))
+      ;; constant should = new STX * new tokens
+      (new-stx-balance (/ constant new-token-balance))
+      ;; pay the difference between previous and new STX balance to user
+      (stx-to-pay (- stx-balance new-stx-balance))
+      ;; put addresses into variables for ease of use
+      (user-address tx-sender)
+      (contract-address (as-contract tx-sender))
+    )
+      (begin
+        ;; transfer tokens from user to contract
+        (try! (contract-call? .test-token transfer token-amount user-address contract-address))
+        ;; transfer tokens from contract to user
+        (as-contract (stx-transfer? stx-to-pay contract-address user-address))
+      )
+    )
+  )
+)
